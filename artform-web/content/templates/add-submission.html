@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Make your submission!</h1>
+    <form method="post" action="#" enctype="multipart/form-data">
+        <input type="text" name="title" placeholder="A creative title your your stunning piece...">
+        <input type="text" name="description" placeholder="A short but apt description...">
+        <input type="file" name="file" accept=".png, .jpg, .jpeg">
+        <input type="submit" value="Upload">
+    </form>
+{% endblock %}

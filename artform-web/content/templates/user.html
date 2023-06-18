@@ -9,10 +9,20 @@
         User page <br>
         Hello there {{ name }}
     </h1>
-    <form action="#" method="POST">
-        <input type="text" name="Username">
-        <input type="password" name="Password">
-        <input type="submit">
-    </form>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <p>
+        <a href="/addpost">New post</a> <br>
+        <a href="/logout">Logout?</a>
+    </p>
     </body>
 </html>
