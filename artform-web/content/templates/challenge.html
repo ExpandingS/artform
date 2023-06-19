@@ -7,6 +7,11 @@
         Created by {{ created_by }}.<br>
         Started at {{ created_at }}.
     </p>
+    {% if user_owns_challenge and ongoing %}
+        <form method="post" action="/end-challenge/{{ challenge_id }}">
+            <input type="submit" value="End post.">
+        </form>
+    {% endif %}
 
     <br>
     <br>

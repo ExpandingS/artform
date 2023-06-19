@@ -36,6 +36,7 @@ class challenges(db.Model):
     created_by = db.Column("created_by", db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column("created_at", db.TIMESTAMP)
     ongoing = db.Column("ongoing", db.Boolean)
+    winning_submission = db.Column("winning_submission", db.Integer, db.ForeignKey("submissions.id"))    
 
     def __init__(self, title, description, created_by):
         self.title = title
@@ -172,19 +173,37 @@ def create_challenge():
     else:
         return render_template("create-challenge.html")
     
+@app.route("/end-challenge/<challenge>", methods=["POST"])
+def end_challenge(challenge):
+    challenge = challenges.query.filter_by(id=challenge).first()
+
+    if challenge is None:
+        flash("Challenge not found!")
+        return redirect(request.referrer)
+    
+    challenge.ongoing = False
+    all_likes = likes.query.filter_by(submission_id=challenge.id)
+    most_liked_post = all_likes.order_by(likes.id.desc()).first()
+    challenge.winning_submission = most_liked_post.submission_id
+    db.session.add(challenge)
+    
+    db.session.commit()
+
+
 @app.route("/challenge/<id>")
 def challenge(id):
     challenge = challenges.query.filter_by(id=id).first()
     if challenge is not None:
         all_submissions = submissions.query.filter_by(challenge_id=id).all()
 
-        # Add comments, likes for each submission
+        # Add fields to each submission.
         for submission in all_submissions:
             all_comments = comments.query.filter_by(submission_id=submission.id).all()
             submission.comments = all_comments
 
+            # Check if user has already liked this submission
             submission.already_liked = likes.query.filter_by(submission_id=submission.id, created_by=session["user_id"]).first() != None
-            # Check if user has liked this submission
+            # Get number of likes on a submission
             submission.number_of_likes = likes.query.filter_by(submission_id=submission.id).count()
 
         return render_template("challenge.html",
@@ -192,8 +211,10 @@ def challenge(id):
                             description=challenge.description,
                             created_by=challenge.created_by, # Show actual user name, not just number.
                             created_at=challenge.created_at,
+                            ongoing=challenge.ongoing,
                             challenge_id=id,
-                            submissions=all_submissions
+                            submissions=all_submissions,
+                            user_owns_challenge=session["user_id"] == challenge.created_by,
                             )
     else: return render_template("404.html")
 
