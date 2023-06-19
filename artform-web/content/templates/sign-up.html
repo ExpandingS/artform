@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Sign up here!</h1>
+    <p></p><br>
+    <form method="post" action="#">
+        <input type="text" name="username" placeholder="Username" id="password">
+        <input type="password" name="password" placeholder="Password" id="password_confirm">
+        <input type="password" placeholder="Confirm password" id="submit">
+        <!--TODO: Add front-end password requirements-->
+        
+        <input type="submit" value="Create Account" id="submit">
+    </form>
+
+{% endblock %}
+
+{% block script %}
+    <script> // This does not work.
+        var password = document.getElementById("password")
+        var password_confirm = document.getElementById("password_confrim")
+        var submit = document.getElementById("submit")
+
+        function validate() {
+            if (len(password.value) <= 10) {
+                submit.setCustomValidity("Password must be at least ten characters")
+            } else if(password.value != password_confirm.value){
+                submit.setCustomValidity("Passwords don't match")
+            } else {
+                submit.setCustomValidity("") // No error.
+            }
+        }
+
+        // Add events
+        password.onchange = validate
+        password_confirm = validate
+    </script>
+{% endblock %}

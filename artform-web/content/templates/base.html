@@ -9,6 +9,8 @@
 	<!-- note the special href for files in the Flask "static" folder -->
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
+	{% block script %}
+	{% endblock %}
 </head>
 <body>
 
@@ -17,5 +19,16 @@
   {% endblock %}
 </div>
 
+<div id="flashes">
+	{% with messages = get_flashed_messages() %}
+	{% if messages %}
+		<ul class="flashes">
+			{% for message in messages %}
+				<li>{{ message }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+{% endwith %}
+</div>
 </body>
 </html>

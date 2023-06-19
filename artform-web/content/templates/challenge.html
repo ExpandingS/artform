@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Here's a cool post!</h1>
+    <h1>Here's a cool challenge!</h1>
     <h2>{{ title }}</h2>
     <h3>{{ description }}</h3>
     <p>
@@ -21,6 +21,22 @@
             <h2>{{ submission.title }}</h2>
             <h3>{{ submission.description }}</h3>
             <p>Created by {{ submission.id }}</p>
+            <br>
+
+            <ul>
+                {% for comment in comments %}
+                    <li>
+                        {{ comment.message }}
+                    </li>
+                {% endfor %}
+            </ul>
+            <br>
+
+            <p>Add a comment: </p>
+            <form method="post" action="/add-comment/{{submission.id}}">
+                <input type="text" placeholder="A heartwarming response to their art!" name="message">
+                <input type="submit" value="Comment!">
+            </form>
         </li>
         {% endfor %}
     </ul>
@@ -30,7 +46,7 @@
 
     <div id="make-submission">
         <h1>Make your submission!</h1>
-        <form method="post" action="/add-submission/{{ post_id }}" enctype="multipart/form-data">
+        <form method="post" action="/add-submission/{{ challenge_id }}" enctype="multipart/form-data">
             <input type="text" name="title" placeholder="A creative title your your stunning piece...">
             <input type="text" name="description" placeholder="A short but apt description...">
             <input type="file" name="file" accept=".png, .jpg, .jpeg">
