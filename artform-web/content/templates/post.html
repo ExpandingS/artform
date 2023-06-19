@@ -3,5 +3,39 @@
     <h1>Here's a cool post!</h1>
     <h2>{{ title }}</h2>
     <h3>{{ description }}</h3>
+    <p>
+        Created by {{ created_by }}.<br>
+        Started at {{ created_at }}, goes for {{ duration }} hours.
+    </p>
+
+    <br>
+    <br>
+    <br>
+
+    <h1>Already made submissions:</h1>
+    <!-- Make for loop for all of the submissions-->
+    <ul>
+        {% for submission in submissions %}
+        <li>
+            <img src="/static/user-content/{{ submission.link_id }}">
+            <h2>{{ submission.title }}</h2>
+            <h3>{{ submission.description }}</h3>
+            <p>Created by {{ submission.id }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+    <br>
+    <br>
+    <br>
+
+    <div id="make-submission">
+        <h1>Make your submission!</h1>
+        <form method="post" action="/add-submission/{{ post_id }}" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="A creative title your your stunning piece...">
+            <input type="text" name="description" placeholder="A short but apt description...">
+            <input type="file" name="file" accept=".png, .jpg, .jpeg">
+            <input type="submit" value="Upload">
+        </form>
+    </div>
 
 {% endblock %}

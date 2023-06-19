@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Make your post!</h1>
+    <p>General guidelines....</p><br>
+    <form method="post" action="#">
+        <input type="text" name="title" placeholder="A catchy name for your competition!">
+        <input type="text" name="description" placeholder="Go into more detail here, what should artists by trying to strive for here?">
+        <input type="range" min="1" max="50" name="duration_hours">
+        <input type="submit" value="Post">
+    </form>
+{% endblock %}

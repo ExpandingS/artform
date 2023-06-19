@@ -21,18 +21,18 @@ class users(db.Model):
     posts = db.Column("posts", db.JSON)
     submissions = db.Column("submissions", db.JSON)
     
-    def __init__(self, name, password, posts, submissions):
+    def __init__(self, name, password):
         self.name = name
         self.password = password
-        self.posts = posts
-        self.submissions = submissions
+        self.posts = []
+        self.submissions = []
 class posts(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     title = db.Column("title", db.String)
     description = db.Column("description", db.String)
     created_by = db.Column("created_by", db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column("created_at", db.TIMESTAMP)
-    duration_hours = db.Column("duration", db.Integer)
+    duration_hours = db.Column("duration_hours", db.Integer)
 
     def __init__(self, title, description, created_by, duration_hours):
         self.title = title
@@ -43,13 +43,15 @@ class posts(db.Model):
 
 class submissions(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
+    post_id = db.Column("post_id", db.Integer, db.ForeignKey("posts.id"))
     title = db.Column("title", db.String)
     description = db.Column("description", db.String)
     link_id = db.Column("link_id", db.String)
     created_by = db.Column("created_by", db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column("created_at", db.TIMESTAMP)
 
-    def __init__(self, title, description, link_id, created_by):
+    def __init__(self, title, description, link_id, created_by, post_id):
+        self.post_id = post_id
         self.title = title
         self.description = description
         self.link_id = link_id
@@ -80,8 +82,7 @@ def login():
         else: # Move to create user page
             new_user = users(
                 user,
-                sha256(request.form["password"].encode('utf-8')).hexdigest(),
-                [])
+                sha256(request.form["password"].encode('utf-8')).hexdigest())
             db.session.add(new_user)
             db.session.commit()
             flash("Account Created!")
@@ -96,11 +97,11 @@ def login():
             return redirect(url_for("user"))
     return render_template("login.html")
 
-@app.route("/user")
+@app.route("/home")
 def user():
     if "user" in session:
         user = session["user"]
-        return render_template("user.html", name=user)
+        return render_template("home.html", name=user)
     else:
         flash("You are not logged in!")
         return redirect(url_for("login"))
@@ -115,23 +116,39 @@ def create_post():
         new_post = posts(request.form["title"],
                          request.form["description"],
                          session["user_id"],
-                         request.form["duration"])
-        return redirect(url_for("user")) # Replace with post page
+                         request.form["duration_hours"])
+        db.session.add(new_post)
+        db.session.commit()
+        
+        # Redirect to post page:
+        return redirect(url_for("view_post", id=new_post.id))
     else:
         return render_template("create-post.html")
     
 @app.route("/post/<id>")
-def view_post(id):
+def post(id):
     post = posts.query.filter_by(id=id).first()
-    return render_template("view-post.html",
-                           title=post.title,
-                           description=post.description,
-                           created_by=post.created_by,
-                           created_at=post.created_at,
-                           duration=post.duration_hours)
+    all_submissions = submissions.query.filter_by(post_id=id).all()
+    if post is not None:
+        return render_template("post.html",
+                            title=post.title,
+                            description=post.description,
+                            created_by=post.created_by, # Show actual user name, not just number.
+                            created_at=post.created_at,
+                            duration=post.duration_hours,
+                            post_id=id,
+                            submissions=all_submissions
+                            )
+    else: return render_template("404.html")
 
-@app.route("/add-submission", methods=["GET","POST"])
-def add_post():
+@app.route("/explore")
+def explore():
+    # Get all posts
+    all_posts = posts.query.all()
+    return render_template("explore.html", posts=all_posts)
+
+@app.route("/add-submission/<post>", methods=["POST"])
+def add_submission(post):
     if "user" not in session:
         flash("You are not currently logged in.")
         return redirect(url_for("login"))
@@ -142,13 +159,14 @@ def add_post():
         new_submission = submissions(request.form["title"],
                          request.form["description"],
                          f.filename,
-                         session["user_id"])
+                         session["user_id"],
+                         post)
+        
         db.session.add(new_submission)
         db.session.commit()
         flash("Submission Added!")
-        return redirect(url_for("user")) # Replace with post page
-    else:
-        return render_template("add-submission.html")
+        return redirect(url_for("post", id=post)) # Replace with post page
+
     
 @app.route("/view-submission/<id>")
 def view_submission(id):
