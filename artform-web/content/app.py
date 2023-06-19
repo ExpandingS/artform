@@ -35,14 +35,14 @@ class challenges(db.Model):
     description = db.Column("description", db.String)
     created_by = db.Column("created_by", db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column("created_at", db.TIMESTAMP)
-    duration_hours = db.Column("duration_hours", db.Integer)
+    ongoing = db.Column("ongoing", db.Boolean)
 
-    def __init__(self, title, description, created_by, duration_hours):
+    def __init__(self, title, description, created_by):
         self.title = title
         self.description = description
         self.created_by = created_by
         self.created_at = db.func.current_timestamp()
-        self.duration_hours = duration_hours
+        self.ongoing = True
 
 class submissions(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
@@ -60,7 +60,14 @@ class submissions(db.Model):
         self.link_id = link_id
         self.created_by = created_by
         self.created_at = db.func.current_timestamp()
- 
+class likes(db.Model):
+    id = db.Column("id", db.Integer, primary_key=True)
+    submission_id = db.Column("submission_id", db.Integer, db.ForeignKey("submissions.id"))
+    created_by = db.Column("created_by", db.Integer, db.ForeignKey("users.id"))
+    def __init__(self, submission_id, created_by):
+        self.submission_id = submission_id
+        self.created_by = created_by
+
 class comments(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     submission_id = db.Column("submission_id", db.Integer, db.ForeignKey("submissions.id"))
@@ -156,8 +163,7 @@ def create_challenge():
     if request.method == "POST":
         new_challenge = challenges(request.form["title"],
                          request.form["description"],
-                         session["user_id"],
-                         request.form["duration_hours"])
+                         session["user_id"],)
         db.session.add(new_challenge)
         db.session.commit()
         
@@ -169,14 +175,23 @@ def create_challenge():
 @app.route("/challenge/<id>")
 def challenge(id):
     challenge = challenges.query.filter_by(id=id).first()
-    all_submissions = submissions.query.filter_by(challenge_id=id).all()
     if challenge is not None:
+        all_submissions = submissions.query.filter_by(challenge_id=id).all()
+
+        # Add comments, likes for each submission
+        for submission in all_submissions:
+            all_comments = comments.query.filter_by(submission_id=submission.id).all()
+            submission.comments = all_comments
+
+            submission.already_liked = likes.query.filter_by(submission_id=submission.id, created_by=session["user_id"]).first() != None
+            # Check if user has liked this submission
+            submission.number_of_likes = likes.query.filter_by(submission_id=submission.id).count()
+
         return render_template("challenge.html",
                             title=challenge.title,
                             description=challenge.description,
                             created_by=challenge.created_by, # Show actual user name, not just number.
                             created_at=challenge.created_at,
-                            duration=challenge.duration_hours,
                             challenge_id=id,
                             submissions=all_submissions
                             )
@@ -208,6 +223,33 @@ def add_submission(challenge):
         flash("Submission Added!")
         return redirect(url_for("challenge", id=challenge)) # Replace with post page
 
+@app.route("/like/<submission>", methods=["POST"])
+def like(submission):
+    if "user" not in session:
+        flash("You are not currently logged in.")
+        return redirect(url_for("login"))
+    
+    submission = submissions.query.filter_by(id=submission).first()
+
+    if likes.query.filter_by(submission_id=submission.id, created_by=session["user_id"]).first() is not None:
+        flash("You have already liked this submission!")
+        return redirect(request.referrer)
+    
+    new_like = likes(submission.id, session["user_id"])
+    db.session.add(new_like)
+    db.session.commit()
+    return redirect(request.referrer)
+
+@app.route("/remove_like/<submission>", methods=["POST"])
+def remove_like(submission):
+    if "user" not in session:
+        flash("You are not currently logged in.")
+        return redirect(url_for("login"))
+    user_like = likes.query.filter_by(submission_id=submission, created_by=session["user_id"]).first()
+    db.session.delete(user_like)
+    db.session.commit()
+    return redirect(request.referrer)
+
 @app.route("/add-comment/<submission>", methods=["POST"])
 def add_comment(submission):
     if "user" not in session:
@@ -219,13 +261,13 @@ def add_comment(submission):
     db.session.commit()
     return redirect(request.referrer)
  
-@app.route("/view-submission/<id>")
-def view_submission(id):
-    submission = submissions.query.filter_by(id=id).first()
-    return render_template("view-submission.html",
-                           image_link="/static/user-content/" + submission.link_id,
-                           title=submission.title,
-                           description=submission.description) # Add link to user
+# @app.route("/view-submission/<id>")
+# def view_submission(id):
+#     submission = submissions.query.filter_by(id=id).first()
+#     return render_template("view-submission.html",
+#                            image_link="/static/user-content/" + submission.link_id,
+#                            title=submission.title,
+#                            description=submission.description) # Add link to user
 
 # @app.route("/delete-submission/<id>")
 # def delete_submission(id):

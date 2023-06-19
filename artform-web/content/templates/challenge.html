@@ -5,7 +5,7 @@
     <h3>{{ description }}</h3>
     <p>
         Created by {{ created_by }}.<br>
-        Started at {{ created_at }}, goes for {{ duration }} hours.
+        Started at {{ created_at }}.
     </p>
 
     <br>
@@ -22,9 +22,20 @@
             <h3>{{ submission.description }}</h3>
             <p>Created by {{ submission.id }}</p>
             <br>
-
+            <p>{{ submission.number_of_likes }} likes</p>
+            {% if submission.already_liked %}
+            <form method="post" action="/remove_like/{{submission.id}}">
+                <input type="hidden" name="like" value="true">
+                <button type="submit">Remove like</button>
+            </form>
+            {% else %}
+                <form method="post" action="/like/{{submission.id}}">
+                    <input type="hidden" name="like" value="true">
+                    <button type="submit">Like</button>
+                    </form>
+            {% endif %}
             <ul>
-                {% for comment in comments %}
+                {% for comment in submission.comments %}
                     <li>
                         {{ comment.message }}
                     </li>
@@ -53,5 +64,8 @@
             <input type="submit" value="Upload">
         </form>
     </div>
+{% endblock %}
+
+{% block script %}
 
 {% endblock %}
