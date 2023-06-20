@@ -17,44 +17,45 @@
     <br>
     <br>
 
-    <h1>Already made submissions:</h1>
-    <!-- Make for loop for all of the submissions-->
-    <ul>
-        {% for submission in submissions %}
-        <li>
-            <img src="/static/user-content/{{ submission.link_id }}">
-            <h2>{{ submission.title }}</h2>
-            <h3>{{ submission.description }}</h3>
-            <p>Created by {{ submission.id }}</p>
-            <br>
-            <p>{{ submission.number_of_likes }} likes</p>
-            {% if submission.already_liked %}
-            <form method="post" action="/remove_like/{{submission.id}}">
-                <input type="hidden" name="like" value="true">
-                <button type="submit">Remove like</button>
-            </form>
-            {% else %}
-                <form method="post" action="/like/{{submission.id}}">
+    {% if submissions|length != 0 %}
+        <h1>Already made submissions:</h1>
+        <ul>
+            {% for submission in submissions %}
+            <li>
+                <img src="/static/user-content/{{ submission.link_id }}">
+                <h2>{{ submission.title }}</h2>
+                <h3>{{ submission.description }}</h3>
+                <p>Created by {{ submission.id }}</p>
+                <br>
+                <p>{{ submission.number_of_likes }} likes</p>
+                {% if submission.already_liked %}
+                <form method="post" action="/remove_like/{{submission.id}}">
                     <input type="hidden" name="like" value="true">
-                    <button type="submit">Like</button>
-                    </form>
-            {% endif %}
-            <ul>
-                {% for comment in submission.comments %}
-                    <li>
-                        {{ comment.message }}
-                    </li>
-                {% endfor %}
-            </ul>
-            <br>
+                    <button type="submit">Remove like</button>
+                </form>
+                {% else %}
+                    <form method="post" action="/like/{{submission.id}}">
+                        <input type="hidden" name="like" value="true">
+                        <button type="submit">Like</button>
+                        </form>
+                {% endif %}
+                <ul>
+                    {% for comment in submission.comments %}
+                        <li>
+                            {{ comment.message }}
+                        </li>
+                    {% endfor %}
+                </ul>
+                <br>
 
-            <p>Add a comment: </p>
-            <form method="post" action="/add-comment/{{submission.id}}">
-                <input type="text" placeholder="A heartwarming response to their art!" name="message">
-                <input type="submit" value="Comment!">
-            </form>
-        </li>
-        {% endfor %}
+                <p>Add a comment: </p>
+                <form method="post" action="/add-comment/{{submission.id}}">
+                    <input type="text" placeholder="A heartwarming response to their art!" name="message">
+                    <input type="submit" value="Comment!">
+                </form>
+            </li>
+            {% endfor %}
+    {% endif %}
     </ul>
     <br>
     <br>

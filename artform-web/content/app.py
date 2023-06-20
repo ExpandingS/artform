@@ -21,14 +21,11 @@ class users(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     name = db.Column("name", db.String)
     password = db.Column("password", db.String)
-    challenges = db.Column("challenges", db.JSON)
-    submissions = db.Column("submissions", db.JSON)
     
     def __init__(self, name, password):
         self.name = name
         self.password = sha256_pw(password)
-        self.challenges = []
-        self.submissions = []
+        
 class challenges(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     title = db.Column("title", db.String)

@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Hello</title>
-    </head>
-
-    <body>
+{% extends "base.html" %}
+{% block content %}    
     <h1>
         User page <br>
         Hello there {{ name }}
@@ -14,5 +9,4 @@
         <a href="/create-challenge">New post</a> <br>
         <a href="/logout">Logout?</a>
     </p>
-    </body>
-</html>
+{% endblock %}
