@@ -1,4 +1,4 @@
-version: "1"
+version: "3"
 services:
   web:
     build: ./artform-web/
@@ -16,11 +16,11 @@ services:
       MYSQL_ROOT_PASSWORD: abcde123
     volumes:
       - db:/var/lib/mysql
-  # adminer:
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - 8080:8080
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
 volumes:
   db:
   user-content:
