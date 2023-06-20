@@ -219,7 +219,8 @@ def challenge(id):
                             submissions=all_submissions,
                             user_owns_challenge=session["user_id"] == challenge.created_by,
                             )
-    else: return render_template("404.html")
+    else:
+        return render_template("404.html")
 
 @app.route("/explore")
 def explore():
@@ -312,3 +313,7 @@ def logout():
             return redirect(url_for("login"))
         else:
             return render_template("logout.html", username=session["user"])
+        
+@app.errorhandler(404)
+def error_404(e):
+    return render_template("404.html")
