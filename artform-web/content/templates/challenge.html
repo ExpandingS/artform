@@ -1,78 +1,95 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Here's a cool challenge!</h1>
-    <h2>{{ title }}</h2>
-    <h3>{{ description }}</h3>
-    <p>
-        Created by {{ created_by }}.<br>
-        Started at {{ created_at }}.
-    </p>
-    {% if user_owns_challenge and ongoing %}
-        <form method="post" action="/end-challenge/{{ challenge_id }}">
-            <input type="submit" value="End post.">
-        </form>
-    {% endif %}
+    <div class="flex flex-col items-center justify-center px-6 py-8">
 
-    <br>
-    <br>
-    <br>
+    <!-- Challenge information -->  
+        <div class="mb-24 w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+            <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+                <p class="text-3xl font-bold text-white"><span class="underline decoration-sky-500">Challenge:</span> {{ title }}</p>
+                <p class="text-lg text-white">{{ description }}</p>
+                <p class="text-s italic text-white">Created by {{ created_by }}</p>
 
-    {% if submissions|length != 0 %}
-        <h1>Already made submissions:</h1>
-        <ul>
+                <!-- Only let owner of a post end it. -->
+                {% if user_owns_challenge and ongoing %}
+                <form method="post" action="/export-challenge/{{ challenge_id }}">
+                    <button type="submit" class="text-white bg-gradient-to-br from-pink-500 to-orange-400 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800 font-medium rounded-lg text-l px-5 py-2.5 text-center mr-2 mb-2 mt-5">
+                        Export challenge submissions to CSV
+                    </button>
+                </form>
+            {% endif %}
+            </div>
+        </div>
+
+        {% if submissions|length != 0 %}
             {% for submission in submissions %}
-            <li>
-                <img src="/static/user-content/{{ submission.link_id }}">
-                <h2>{{ submission.title }}</h2>
-                <h3>{{ submission.description }}</h3>
-                <p>Created by {{ submission.id }}</p>
-                <br>
-                <p>{{ submission.number_of_likes }} likes</p>
-                {% if submission.already_liked %}
-                <form method="post" action="/remove_like/{{submission.id}}">
-                    <input type="hidden" name="like" value="true">
-                    <button type="submit">Remove like</button>
-                </form>
-                {% else %}
-                    <form method="post" action="/like/{{submission.id}}">
-                        <input type="hidden" name="like" value="true">
-                        <button type="submit">Like</button>
+                <div class="p-10 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-10 w-8/12">
+                    <!-- Basic post information-->
+                    <p class="text-2xl font-bold text-white">{{ submission.title }}</p>
+                    <p class="text-lg text-white">{{ submission.description }}</p>
+                    <img src="/static/user-content/{{ submission.link_id }}">
+                    <p class="text-s italic text-gray-400">Created by {{ submission.created_by_username }}</p>
+                    <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700">
+                    <!-- Interactions with post-->
+                    {% if submission.already_liked %}
+                        <form method="post" action="/remove_like/{{submission.id}}">
+                            <input type="hidden" name="like" value="true">
+                            <button type="submit" class="text-2xl text-white underline decoration-pink-500 ">Unlike</button>
                         </form>
-                {% endif %}
-                <ul>
-                    {% for comment in submission.comments %}
-                        <li>
-                            {{ comment.message }}
-                        </li>
-                    {% endfor %}
-                </ul>
-                <br>
+                    {% else %}
+                        <form method="post" action="/like/{{submission.id}}">
+                            <input type="hidden" name="like" value="true">
+                            <button type="submit" class="text-2xl text-white underline decoration-indigo-500">Like</button>
+                        </form>
+                    {% endif %}
+                    <p class="text-lg text-white">{{ submission.number_of_likes }} Likes</p>
+                    <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700">
+                    <!-- Comments -->
 
-                <p>Add a comment: </p>
-                <form method="post" action="/add-comment/{{submission.id}}">
-                    <input type="text" placeholder="A heartwarming response to their art!" name="message">
-                    <input type="submit" value="Comment!">
-                </form>
-            </li>
+                    <p class="text-white text-2xl">Comments:</p>
+                    <ul>
+                        {% for comment in submission.comments %}
+                            <li>
+                                <p class="text-white text-s">
+                                    {{ comment.message }}
+                                </p>
+                            </li>
+                            <br>
+                        {% endfor %}
+                    </ul>
+
+                    <p class="text-white text-2xl">Add a comment:</p>
+                    <form method="post" action="/add-comment/{{submission.id}}">
+                        <input type="text" placeholder="A heartwarming response to their art!" name="message" class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 sm:text-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <!-- <input type="submit" value="Comment!"> -->
+                        <button type="submit" class="mt-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow">
+                            Comment!
+                        </button>
+                    </form>
+                </div>
             {% endfor %}
-    {% endif %}
-    </ul>
-    <br>
-    <br>
-    <br>
+        {% endif %}
+        
+        <!-- Submissions -->
+        <div class="mb-24 w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+            <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+                <p class="text-3xl text-white">Submit your own work!</p>
 
-    <div id="make-submission">
-        <h1>Make your submission!</h1>
-        <form method="post" action="/add-submission/{{ challenge_id }}" enctype="multipart/form-data">
-            <input type="text" name="title" placeholder="A creative title your your stunning piece...">
-            <input type="text" name="description" placeholder="A short but apt description...">
-            
-            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Upload file</label>
-            <input type="file" name="file" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG, or JPEG</p>
-
-            <input type="submit" value="Upload">
-        </form>
+                <form method="post" action="/add-submission/{{ challenge_id }}" enctype="multipart/form-data">
+                    <div>
+                        <label for="title" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Title</label>
+                        <input type="text" name="title" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="A creative title your your stunning piece..." required>
+                    </div>
+                    <div>
+                        <label for="last_name" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+                        <input type="text" name="description" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="A short but apt description..." required>
+                    </div>
+                    
+                    <label class="block mt-5 mb-0 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Upload file</label>
+                    <input type="file" name="file" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG, or JPEG</p>
+        
+                    <input type="submit" value="Upload" class="mt-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow">
+                </form>
     </div>
 {% endblock %}
 

@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
+import csv
 
 # Libraries for securely storing passwords, and defanging filenames.
 from hashlib import sha256
@@ -13,6 +14,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy()
 db.init_app(app)
+# db.create_all()
 
 def sha256_pw(password):
     return sha256(password.encode('utf-8')).hexdigest()
@@ -102,7 +104,7 @@ def login():
                 return redirect(url_for("login"))
             
         else: # Account doesn't exist.
-            flash("Account doesn't exist!")
+            flash("Account doesn't exist! You may need to sign up first.")
             return redirect(url_for("login"))
 
     else:
@@ -176,33 +178,41 @@ def create_challenge():
     else:
         return render_template("create-challenge.html")
     
-@app.route("/end-challenge/<challenge>", methods=["POST"])
-def end_challenge(challenge):
+@app.route("/export-challenge/<challenge>", methods=["POST"])
+def explort_challenge(challenge):
     challenge = challenges.query.filter_by(id=challenge).first()
-
     if challenge is None:
         flash("Challenge not found!")
-        return redirect(request.referrer)
+        return redirect(url_for("user"))
     
-    challenge.ongoing = False
-    all_likes = likes.query.filter_by(submission_id=challenge.id)
-    most_liked_post = all_likes.order_by(likes.id.desc()).first()
-    challenge.winning_submission = most_liked_post.submission_id
-    db.session.add(challenge)
+    all_submissions = submissions.query.filter_by(challenge_id=challenge.id).all()
+    csv_file = open(f"/code/content/static/user-content/challenge-{challenge.id}.csv", "w")
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerow([challenge.id, challenge.title, challenge.description])
+
+    for submission in all_submissions:
+        number_of_likes = likes.query.filter_by(submission_id=submission.id).count()
+        csv_writer.writerow([submission.id, submission.title, submission.description, submission.link_id, submission.created_by, submission.created_at, number_of_likes])
     
-    db.session.commit()
+    csv_file.close()
+    return send_file(f"/code/content/static/user-content/challenge-{challenge.id}.csv", as_attachment=True)
+    
 
 
 @app.route("/challenge/<id>")
 def challenge(id):
     challenge = challenges.query.filter_by(id=id).first()
+
     if challenge is not None:
+        owner_username = users.query.filter_by(id=challenge.created_by).first().name
         all_submissions = submissions.query.filter_by(challenge_id=id).all()
 
         # Add fields to each submission.
         for submission in all_submissions:
             all_comments = comments.query.filter_by(submission_id=submission.id).all()
             submission.comments = all_comments
+            # Get username of user who created submission
+            submission.created_by_username = users.query.filter_by(id=submission.created_by).first().name
 
             # Check if user has already liked this submission
             submission.already_liked = likes.query.filter_by(submission_id=submission.id, created_by=session["user_id"]).first() != None
@@ -212,7 +222,7 @@ def challenge(id):
         return render_template("challenge.html",
                             title=challenge.title,
                             description=challenge.description,
-                            created_by=challenge.created_by, # Show actual user name, not just number.
+                            created_by=owner_username, # Show actual user name, not just number.
                             created_at=challenge.created_at,
                             ongoing=challenge.ongoing,
                             challenge_id=id,
@@ -220,7 +230,8 @@ def challenge(id):
                             user_owns_challenge=session["user_id"] == challenge.created_by,
                             )
     else:
-        return render_template("404.html")
+        flash("Oops! That challenge does not exist.")
+        return redirect(url_for("error_404"))
 
 @app.route("/explore")
 def explore():
@@ -246,7 +257,7 @@ def add_submission(challenge):
         db.session.add(new_submission)
         db.session.commit()
         flash("Submission Added!")
-        return redirect(url_for("challenge", id=challenge)) # Replace with post page
+        return redirect(request.referrer) # Replace with post page
 
 @app.route("/like/<submission>", methods=["POST"])
 def like(submission):
@@ -285,21 +296,6 @@ def add_comment(submission):
     db.session.add(new_comment)
     db.session.commit()
     return redirect(request.referrer)
- 
-# @app.route("/view-submission/<id>")
-# def view_submission(id):
-#     submission = submissions.query.filter_by(id=id).first()
-#     return render_template("view-submission.html",
-#                            image_link="/static/user-content/" + submission.link_id,
-#                            title=submission.title,
-#                            description=submission.description) # Add link to user
-
-# @app.route("/delete-submission/<id>")
-# def delete_submission(id):
-#     submission = submissions.query.filter_by(id=id).first()
-#     db.session.delete(submission)
-#     db.sessio n.commit()
-#     return redirect(url_for("post", id=submission.post_id))
 
 @app.route("/logout", methods=["GET", "POST"])
 def logout():
@@ -314,6 +310,10 @@ def logout():
         else:
             return render_template("logout.html", username=session["user"])
         
+@app.route("/404")
+def error_404():
+    return render_template("404.html")
+
 @app.errorhandler(404)
 def error_404(e):
     return render_template("404.html")
