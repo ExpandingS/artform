@@ -145,6 +145,7 @@ def sign_up():
 
         flash("Account Created!")
         session["user"] = new_user.name
+        session["user_id"] = new_user.id
         return redirect(url_for("user"))
     else:
         return render_template("sign-up.html")
