@@ -149,12 +149,14 @@ def sign_up():
 
 @app.route("/home")
 def user():
-    if "user" in session:
-        user = session["user"]
-        return render_template("home.html", name=user)
-    else:
-        flash("You are not logged in!")
-        return redirect(url_for("login"))
+    return redirect(url_for("index"))
+# def user():
+#     if "user" in session:
+#         user = session["user"]
+#         return render_template("home.html", name=user)
+#     else:
+#         flash("You are not logged in!")
+#         return redirect(url_for("login"))
 
 @app.route("/create-challenge", methods=["GET","POST"])
 def create_challenge():
