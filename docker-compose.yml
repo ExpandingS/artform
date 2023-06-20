@@ -3,7 +3,7 @@ services:
   web:
     build: ./artform-web/
     ports:
-      - "8000:5000"
+      - "80:5000"
     volumes:
       - type: bind
         source: ./artform-web/content
