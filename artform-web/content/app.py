@@ -152,13 +152,6 @@ def sign_up():
 @app.route("/home")
 def user():
     return redirect(url_for("index"))
-# def user():
-#     if "user" in session:
-#         user = session["user"]
-#         return render_template("home.html", name=user)
-#     else:
-#         flash("You are not logged in!")
-#         return redirect(url_for("login"))
 
 @app.route("/create-challenge", methods=["GET","POST"])
 def create_challenge():
@@ -196,8 +189,6 @@ def explort_challenge(challenge):
     
     csv_file.close()
     return send_file(f"/code/content/static/user-content/challenge-{challenge.id}.csv", as_attachment=True)
-    
-
 
 @app.route("/challenge/<id>")
 def challenge(id):
