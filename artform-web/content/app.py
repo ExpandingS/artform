@@ -193,7 +193,7 @@ def explort_challenge(challenge):
 
 @app.route("/challenge/<id>")
 def challenge(id):
-    if session["user"] is None:
+    if "user" not in session:
         flash("You need to be logged in to view a challenge!")
         return redirect(url_for("login"))
     
