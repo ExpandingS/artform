@@ -1,12 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Make your challenge!</h1>
-    <p>General guidelines....</p><br>
-    <form method="post" action="#">
-        <input type="text" name="title" placeholder="A catchy name for your competition!">
-        <input type="text" name="description" placeholder="Go into more detail here, what should artists by trying to strive for here?">
-        <input type="range" min="1" max="50" name="duration_hours">
-        <input type="submit" value="Post">
-    </form>
+    <div class="flex flex-col items-center justify-center min-h-screen mt-20">
+        <div class="p-5 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-10 w-5/12">
+
+            <p class="text-bold text-4xl text-white">Create a new post!</p>
+
+
+            <form method="post" action="#">
+
+                <input type="text" name="title" placeholder="A catchy name for your competition!" class="block w-full my-4 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 sm:text-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                <input type="text" name="description" placeholder="Go into more detail here, what should artists by trying to strive for here?" class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 sm:text-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+
+                <button type="submit" class="mt-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow my-4">
+                    Add post!
+                </button>
+            </form>
+        </div>
+    </div>
 
 {% endblock %}
