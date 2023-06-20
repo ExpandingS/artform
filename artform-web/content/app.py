@@ -25,7 +25,7 @@ class users(db.Model):
     def __init__(self, name, password):
         self.name = name
         self.password = sha256_pw(password)
-        
+
 class challenges(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     title = db.Column("title", db.String)
@@ -82,7 +82,7 @@ class comments(db.Model):
 
 @app.route("/")
 def index():
-    return "<p>Hello, World! What's up?</p> <a href=\"/login\">login</a>"
+    return render_template("index.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -122,9 +122,13 @@ def sign_up():
         user = request.form["username"]
         found_user = users.query.filter_by(name=user).first()
         if found_user:
-            flash("Username already exists!")
+            flash("Username already taken!")
             return redirect(url_for("sign_up"))
         
+        if request.form["password"] != request.form["confirm_password"]:
+            flash("Passwords do not match!")
+            return redirect(url_for("sign_up"))
+
         # Check password length
         # if len(request.form["password"]) < 10:
         #     flash("Password must be at least 10 characters!")
